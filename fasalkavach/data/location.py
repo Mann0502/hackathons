@@ -8,6 +8,15 @@ NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 USER_AGENT = {"User-Agent": "FasalKavach-hackathon/0.1"}
 
 
+def clean_district(name: str | None) -> str | None:
+    """'Ludhiana district' / 'Ludhiana Tahsil' -> 'Ludhiana' (the form Agmarknet uses)."""
+    if not name:
+        return None
+    for suffix in (" district", " District", " Tahsil", " tahsil"):
+        name = name.replace(suffix, "")
+    return name.strip() or None
+
+
 def in_punjab(lat: float, lon: float) -> bool:
     b = PUNJAB_BOUNDS
     return b["lat_min"] <= lat <= b["lat_max"] and b["lon_min"] <= lon <= b["lon_max"]
@@ -21,7 +30,7 @@ def geocode(query: str) -> dict:
     for r in data.get("results", []):
         if r.get("admin1") == "Punjab" or in_punjab(r["latitude"], r["longitude"]):
             return {
-                "name": r["name"], "district": r.get("admin2"), "state": "Punjab",
+                "name": r["name"], "district": clean_district(r.get("admin2")), "state": "Punjab",
                 "lat": r["latitude"], "lon": r["longitude"],
                 "source": "Open-Meteo Geocoding API", **meta,
             }
@@ -34,8 +43,7 @@ def reverse_geocode(lat: float, lon: float) -> dict:
                           {"lat": lat, "lon": lon, "format": "json", "zoom": 10},
                           ttl=24 * 3600, headers=USER_AGENT)
     addr = data.get("address", {})
-    district = (addr.get("state_district") or addr.get("county") or addr.get("city") or "")
-    district = district.replace(" District", "").replace(" Tahsil", "").strip() or None
+    district = clean_district(addr.get("state_district") or addr.get("county") or addr.get("city"))
     return {"district": district, "state": addr.get("state"),
             "display_name": data.get("display_name"),
             "source": "OpenStreetMap Nominatim", **meta}

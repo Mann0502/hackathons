@@ -120,3 +120,10 @@ def test_wet_soil_increases_heavy_rain_damage():
     wet = assess("wheat", stage, risks, FARM, DEFAULT_COSTS, {"topsoil_moisture_m3m3": 0.45})
     assert wet["expected_loss_7d_rs_per_acre"] > dry["expected_loss_7d_rs_per_acre"]
     assert wet["soil_note"]
+
+
+def test_district_names_match_agmarknet():
+    from data.location import clean_district
+    assert clean_district("Ludhiana district") == "Ludhiana"
+    assert clean_district("Bathinda District") == "Bathinda"
+    assert clean_district(None) is None

@@ -28,5 +28,12 @@ CACHE_TTL_S = 30 * 60          # weather/price responses are reused for 30 minut
 AGENT_MAX_STEPS = 10           # hard cap on LLM round-trips per request
 AGENT_MAX_VALIDATION_RETRIES = 2
 
+# --- Chat bots -----------------------------------------------------------------
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+# Random string you choose; Telegram sends it back so we know webhook calls are genuine
+TELEGRAM_WEBHOOK_SECRET = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
+BOT_DB_PATH = os.environ.get("BOT_DB_PATH", os.path.join(os.path.dirname(__file__), "fasalkavach.db"))
+CHECK_INTERVAL_HOURS = float(os.environ.get("CHECK_INTERVAL_HOURS", "6"))
+
 # Punjab bounding box (approx.) - requests outside it are rejected
 PUNJAB_BOUNDS = {"lat_min": 29.5, "lat_max": 32.6, "lon_min": 73.8, "lon_max": 77.0}

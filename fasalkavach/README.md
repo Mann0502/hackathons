@@ -105,6 +105,31 @@ Run the tests:
 python -m pytest -q
 ```
 
+## Telegram alert bot
+
+Farmers register a field by chatting with the bot, in English, Hindi or Punjabi. The bot then **re-checks every field every 6 hours by itself** and messages the farmer only when the risk gets meaningfully worse: a rise of 25+ points to above 40%, or a new action becoming worth its cost.
+
+```
+/start → language → share location (or type village) → crop → sowing/transplant date → acres → instant report
+```
+
+Commands: `/add` `/status` `/fields` `/language` `/stop` `/resume` `/help`. Any other message is a question for the AI agent.
+
+The bot logic in `bot/core.py` doesn't depend on Telegram. `bot/telegram.py` is a thin adapter, so a WhatsApp adapter can reuse everything.
+
+**Run it on your laptop:**
+1. In Telegram, message **@BotFather**, send `/newbot`, and follow the steps. Copy the token into `.env` as `TELEGRAM_BOT_TOKEN=...`
+2. Start the bot:
+```bash
+python run_telegram_bot.py
+```
+3. Open the link it prints and send `/start`.
+
+To force an alert check of every field right now (for testing):
+```bash
+python run_telegram_bot.py --check-now
+```
+
 ## Deploy (Render, free tier)
 
 1. Push the repo to GitHub, then on render.com create a **New Web Service** from it.

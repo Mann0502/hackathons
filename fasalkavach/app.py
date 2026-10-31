@@ -138,6 +138,32 @@ def advise():
     })
 
 
+_telegram_bot = None
+
+
+@app.post("/telegram/webhook")
+def telegram_webhook():
+    """Telegram pushes each message here once the app is deployed (see README)."""
+    import hmac
+    import threading
+
+    from bot import telegram
+    from bot.core import Bot
+    from bot.store import Store
+    global _telegram_bot
+
+    secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if not config.TELEGRAM_WEBHOOK_SECRET or not hmac.compare_digest(secret, config.TELEGRAM_WEBHOOK_SECRET):
+        return jsonify({"error": "forbidden"}), 403
+    if _telegram_bot is None:
+        _telegram_bot = Bot(Store(), send=telegram.send,
+                            agent=run_agent if config.ANTHROPIC_API_KEY else None)
+    update = request.get_json(silent=True) or {}
+    # Answer Telegram immediately; checks can take several seconds
+    threading.Thread(target=telegram.handle_update, args=(_telegram_bot, update), daemon=True).start()
+    return jsonify({"ok": True})
+
+
 @app.errorhandler(Exception)
 def unexpected(e):
     log.exception("Unhandled error")

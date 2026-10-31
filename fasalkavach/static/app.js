@@ -9,9 +9,18 @@ let map = null;
 let marker = null;
 if (window.L) {
   map = L.map("map").fitBounds([[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]]);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18, attribution: "&copy; OpenStreetMap contributors",
-  }).addTo(map);
+  // Satellite imagery + place-name labels on top, with a toggle to the plain street map
+  const esri = "https://server.arcgisonline.com/ArcGIS/rest/services";
+  const satellite = L.layerGroup([
+    L.tileLayer(`${esri}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, {
+      maxZoom: 19, attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics",
+    }),
+    L.tileLayer(`${esri}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 19 }),
+  ]).addTo(map);
+  const streets = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19, attribution: "&copy; OpenStreetMap contributors",
+  });
+  L.control.layers({ "Satellite": satellite, "Map": streets }, null, { collapsed: false }).addTo(map);
   map.on("click", onMapClick);
 } else {
   $("map").innerHTML = "<p class='hint'>Map unavailable - please type your village or town name.</p>";
